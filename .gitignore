@@ -1,3 +1,4 @@
 secret
 go.sum
 
+config/*.prod.yml
