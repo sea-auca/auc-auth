@@ -9,6 +9,7 @@ require (
 
 require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
+	github.com/lib/pq v1.10.3
 	github.com/serenize/snaker v0.0.0-20201027110005-a7ad2135616e // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.7.0 // indirect

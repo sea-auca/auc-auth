@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"sea/auth/config"
+	"sea/auth/db"
 	"sea/auth/utils"
 	"syscall"
 
@@ -14,15 +15,22 @@ import (
 
 func main() {
 	// read configuration
-	_, err := config.ReadConfig()
+	conf, err := config.ReadConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
 	// create global defer object
 	shutdown := utils.NewShutdown()
 	logger := InitLogger(shutdown) // init logger
-
 	ctx, cancel := context.WithCancel(context.Background())
+
+	//SERVICES INITIALISATION STEP
+
+	_, err = db.ConnectDatabase(conf, shutdown)
+
+	if err != nil {
+		logger.Fatalw("Could not connect to the database", "Error", err)
+	}
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
@@ -49,7 +57,7 @@ func InitLogger(shutdown *utils.Shutdown) *zap.SugaredLogger {
 		log.Fatal(err)
 	}
 	logger := log1.Sugar()
-
+	zap.ReplaceGlobals(log1)
 	shutdown.Add(logger.Sync)
 	return logger
 }
