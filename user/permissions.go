@@ -19,12 +19,23 @@ var permissions_map = map[Permissions]string{
 	SEA_moderating:  "SEA club moderator",
 }
 
-func NewPermissions() *Permissions {
+func NewPermissions(perms ...Permissions) *Permissions {
 	var perm Permissions = 0
+	if len(perms) != 0 {
+		for _, v := range perms {
+			perm = perm | v
+		}
+	} else {
+		perm = None
+	}
 	return &perm
 }
 
 func (p *Permissions) Assing(perm Permissions) {
+	if *p == None {
+		*p = perm
+		return
+	}
 	*p = *p | perm
 }
 
@@ -34,6 +45,9 @@ func (p *Permissions) Has(perm Permissions) bool {
 
 func (p *Permissions) Revoke(perm Permissions) {
 	*p = *p &^ perm
+	if *p == 0 {
+		*p = None
+	}
 }
 
 func (p *Permissions) Sprint() string {
