@@ -1,8 +1,10 @@
 package user
 
 import (
+	"context"
 	"time"
 
+	"github.com/go-rel/rel"
 	"github.com/google/uuid"
 )
 
@@ -29,6 +31,22 @@ type User struct {
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 }
+
+const aucaEmail = "`^([a-z]+)(_){1}[a-z]{1,4}(@auca.kg|@alumni.auca.kg)$`gm"
+
 func (u User) Table() string {
 	return "user_space.users"
+}
+
+type UserRepository interface {
+	//cruds
+
+	Create(ctx context.Context, u *User) (*User, error)
+	Update(ctx context.Context, u *User) error
+	RelUpdate(ctx context.Context, u *User, ch ...rel.Mutator) error // this breaks clean architecture completely!
+	//getters
+
+	GetByID(ctx context.Context, id string) (*User, error)
+	GetByEmail(ctx context.Context, email string) (*User, error)
+	PaginatedView(ctx context.Context, page, pageSize int) ([]*User, int, error)
 }
