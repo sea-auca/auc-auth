@@ -1,6 +1,6 @@
-package model
+package user
 
-import "fmt"
+import "strings"
 
 type Permissions uint64
 
@@ -36,10 +36,12 @@ func (p *Permissions) Revoke(perm Permissions) {
 	*p = *p &^ perm
 }
 
-func (p *Permissions) Print() {
-	for _, v := range []Permissions{AUCA_student, SEA_moderating, SEA_development, SEA_maintanance} {
-		if p.Has(v) {
-			fmt.Println(permissions_map[v])
+func (p *Permissions) Sprint() string {
+	var vals []string
+	for key, v := range permissions_map {
+		if p.Has(key) {
+			vals = append(vals, v)
 		}
 	}
+	return strings.Join(vals, "|")
 }
