@@ -7,7 +7,6 @@ import (
 
 	"github.com/go-rel/changeset"
 	"github.com/go-rel/changeset/params"
-	"github.com/go-rel/rel"
 	r "github.com/go-rel/rel"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
@@ -81,12 +80,12 @@ func (rp postgresRepository) PaginatedView(ctx context.Context, page, pageSize i
 
 // postgres implementation for Verification link repository
 type postgresLinkRepo struct {
-	repo   rel.Repository
+	repo   r.Repository
 	logger *zap.SugaredLogger
 }
 
 // Create new repository to work with verification links
-func NewVerificationRepository(repo rel.Repository) VerificationRepository {
+func NewVerificationRepository(repo r.Repository) VerificationRepository {
 	return postgresLinkRepo{repo: repo, logger: zap.S()}
 }
 

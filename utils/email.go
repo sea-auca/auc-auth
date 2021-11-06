@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"io"
 	"sea/auth/config"
 
 	"go.uber.org/zap"
@@ -9,6 +10,10 @@ import (
 
 type EmailSender struct {
 	d mail.Sender
+}
+
+func (e EmailSender) Send(from string, to []string, msg io.WriterTo) error {
+	return e.d.Send(from, to, msg)
 }
 
 func NewEmailSender(conf config.AppConfig, sh *Shutdown) (*EmailSender, error) {
@@ -34,5 +39,5 @@ func TestEmail(d *EmailSender) {
 	m.SetHeader("Subject", "Test mailhog email")
 	m.SetBody("text/html", "Hello! <hr/> This is a test email")
 
-	d.d.Send("sea@auca.kg", []string{"student_s@auca.kg"}, m)
+	d.Send("sea@auca.kg", []string{"student_s@auca.kg"}, m)
 }

@@ -14,7 +14,7 @@ type VerificationLink struct {
 	Link            string
 	IsPasswordReset bool
 	ExpiresAt       time.Time
-	CreateAt        time.Time
+	CreatedAt       time.Time
 	UpdatedAt       time.Time
 }
 
