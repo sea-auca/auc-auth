@@ -3,10 +3,13 @@ package user
 import (
 	"context"
 	"errors"
+	"fmt"
+	"sea/auth/utils"
+	"time"
 
 	"github.com/go-rel/changeset/params"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
+	"gopkg.in/mail.v2"
 )
 
 var ErrNotImplemented = errors.New("unimplemented function")
@@ -33,30 +36,55 @@ type UserService interface {
 }
 
 type service struct {
-	repo UserRepository
-	lg   *zap.SugaredLogger
+	repo     UserRepository
+	lg       *zap.SugaredLogger
+	email    utils.EmailSender
+	linkRepo VerificationRepository
 }
 
-func NewService(repo UserRepository) UserService {
-	return service{repo: repo, lg: zap.S().With("service", "user")}
+func NewService(repo UserRepository, email utils.EmailSender, vRepo VerificationRepository) UserService {
+	return service{
+		repo:     repo,
+		lg:       zap.S().With("service", "user"),
+		email:    email,
+		linkRepo: vRepo,
+	}
+}
+
+func (s service) sendVereficationEmail(code, email string) error {
+	const hi_msg = `Hello! <hr/> Thank you for joining the AU Cloud. We are happy to see you there. `
+	const invite = `Please follow this link and complete your registration: <br/>`
+	var link = "https://sea.auca.kg/user/verify?code=" + code
+	var href = fmt.Sprintf("<a href=\"%s\">%s<a/>", link, link)
+	m := mail.NewMessage()
+	m.SetHeader("From", "sea@auca.kg")
+	m.SetHeader("To", email)
+	m.SetHeader("Subject", "Welcome to AU Cloud!")
+	m.SetBody("text/html", hi_msg+invite+href)
+
+	return s.email.Send("sea@auca.kg", []string{"student_s@auca.kg"}, m)
 }
 
 // Creates a placeholder record for user and send an email for verification
 func (s service) RegisterUser(ctx context.Context, email string) (*User, error) {
-	newUser := &User{
-		Email: email,
-		UUID:  UUID(uuid.New().String()),
-	}
-
+	newUser := NewUser(email)
 	user, err := s.repo.Create(ctx, newUser)
 	if err != nil {
 		s.lg.Errorw("failed to create user", "error", err)
 		return nil, err
 	}
 
-	//TODO: add email sender
-
-	return user, ErrNotImplemented
+	vl := NewVerificationLink(user.UUID, time.Hour*24*7, false)
+	vl, err = s.linkRepo.Create(ctx, vl)
+	if err != nil {
+		s.lg.Errorw("failed to create invite link", "error", err)
+		return nil, err
+	}
+	err = s.sendVereficationEmail(vl.Link, email)
+	if err != nil {
+		s.lg.Errorw("failed to send the email for invite", "error", err)
+	}
+	return user, nil
 }
 
 // Suspends user's account. It can be later reactivated
