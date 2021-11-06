@@ -38,6 +38,10 @@ func (u User) Table() string {
 	return "user_space.users"
 }
 
+func NewUser(email string) *User {
+	return &User{Email: email, UUID: UUID(uuid.NewString()), AccessLevels: None, Active: true}
+}
+
 type UserRepository interface {
 	//cruds
 
@@ -46,7 +50,7 @@ type UserRepository interface {
 	RelUpdate(ctx context.Context, u *User, ch ...rel.Mutator) error // this breaks clean architecture completely!
 	//getters
 
-	GetByID(ctx context.Context, id string) (*User, error)
+	GetByID(ctx context.Context, id UUID) (*User, error)
 	GetByEmail(ctx context.Context, email string) (*User, error)
 	PaginatedView(ctx context.Context, page, pageSize int) ([]*User, int, error)
 }
