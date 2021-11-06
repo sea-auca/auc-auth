@@ -2,9 +2,12 @@ package user
 
 import (
 	"context"
+	"errors"
+	"time"
 
 	"github.com/go-rel/changeset"
 	"github.com/go-rel/changeset/params"
+	"github.com/go-rel/rel"
 	r "github.com/go-rel/rel"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
@@ -74,4 +77,71 @@ func (rp postgresRepository) PaginatedView(ctx context.Context, page, pageSize i
 	var users []*User
 	cnt, err := rp.repo.FindAndCountAll(ctx, &users, r.Select().SortDesc("created_at").Limit(pageSize).Offset(page*pageSize))
 	return users, cnt, err
+}
+
+// postgres implementation for Verification link repository
+type postgresLinkRepo struct {
+	repo   rel.Repository
+	logger *zap.SugaredLogger
+}
+
+// Create new repository to work with verification links
+func NewVerificationRepository(repo rel.Repository) VerificationRepository {
+	return postgresLinkRepo{repo: repo, logger: zap.S()}
+}
+
+//Insert new link
+func (rp postgresLinkRepo) Create(ctx context.Context, vl *VerificationLink) (*VerificationLink, error) {
+	err := rp.repo.Insert(ctx, vl)
+	return vl, err
+}
+
+func (rp postgresLinkRepo) SearchByCode(ctx context.Context, code string) (*VerificationLink, error) {
+	var vl *VerificationLink
+	err := rp.repo.Find(ctx, vl, r.Where(r.Eq("code", code)))
+	return vl, err
+}
+
+func (rp postgresLinkRepo) SearchByUser(ctx context.Context, id UUID) ([]*VerificationLink, error) {
+	var vl []*VerificationLink
+	err := rp.repo.FindAll(ctx, vl, r.Select().SortDesc("created_at").Where(r.Eq("user_id", id)))
+	return vl, err
+}
+
+//Sets expiration date for a link to current time
+func (rp postgresLinkRepo) DeactivateLink(ctx context.Context, uuid UUID, code string) error {
+	vls, err := rp.SearchByUser(ctx, uuid)
+	if err != nil {
+		return err
+	}
+	var vl *VerificationLink
+	for _, v := range vls {
+		if v.Link == code {
+			vl = v
+			break
+		}
+	}
+	if vl == nil {
+		return errors.New("could not find the verification link by code")
+	}
+	vl.ExpiresAt = time.Now()
+	err = rp.repo.Update(ctx, vl)
+	return err
+}
+
+//Deactivate all links for specified user
+func (rp postgresLinkRepo) DeactivateAllLinks(ctx context.Context, uuid UUID) error {
+	vls, err := rp.SearchByUser(ctx, uuid)
+	if err != nil {
+		return err
+	}
+	var codes []string
+	for _, v := range vls {
+		codes = append(codes, v.Link)
+	}
+	_, err = rp.repo.UpdateAny(ctx,
+		r.From("user_space.verify_links").Where(r.In("code", codes)),
+		r.Set("expires_at", time.Now()),
+	)
+	return err
 }

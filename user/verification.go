@@ -1,6 +1,7 @@
 package user
 
 import (
+	"context"
 	"strings"
 	"time"
 
@@ -17,6 +18,10 @@ type VerificationLink struct {
 	UpdatedAt       time.Time
 }
 
+func (l VerificationLink) Table() string {
+	return "user_space.verify_links"
+}
+
 //Creates new verification link with set parameters
 func NewVerificationLink(user UUID, ttl time.Duration, isPwd bool) *VerificationLink {
 	//80 bit random link from uuid
@@ -28,4 +33,12 @@ func NewVerificationLink(user UUID, ttl time.Duration, isPwd bool) *Verification
 		ExpiresAt:       time.Now().Add(ttl),
 	}
 	return vl
+}
+
+type VerificationRepository interface {
+	Create(ctx context.Context, vl *VerificationLink) (*VerificationLink, error)
+	SearchByCode(ctx context.Context, code string) (*VerificationLink, error)
+	SearchByUser(ctx context.Context, id UUID) ([]*VerificationLink, error)
+	DeactivateLink(ctx context.Context, uuid UUID, code string) error
+	DeactivateAllLinks(ctx context.Context, uuid UUID) error
 }
