@@ -1,4 +1,5 @@
 secret
 go.sum
-
+.vscode
+.VSCodeCounter
 config/*.prod.yml
