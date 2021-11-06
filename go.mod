@@ -12,6 +12,7 @@ require (
 	github.com/go-rel/reltest v0.4.0
 	github.com/google/uuid v1.3.0
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
+	gopkg.in/mail.v2 v2.3.1
 )
 
 require (
@@ -21,6 +22,7 @@ require (
 	github.com/tidwall/gjson v1.11.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
+	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 )
 
 require (

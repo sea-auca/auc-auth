@@ -30,6 +30,14 @@ type AppConfig struct {
 		Database        string
 		ConnectionLimit int `yaml:"connection_limit"`
 	} `yaml:"database"`
+	// configuration for the email sender
+	EmailConfig struct {
+		Host         string
+		Port         int
+		User         string
+		Password     string
+		MandatoryTLS bool `yaml:"mandatory_tls"`
+	} `yaml:"email"`
 }
 
 var ErrNoConfigFile = errors.New("config file does not exist")

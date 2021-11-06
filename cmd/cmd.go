@@ -31,6 +31,7 @@ func main() {
 	if err != nil {
 		logger.Fatalw("Could not connect to the database", "Error", err)
 	}
+	_, _ = utils.NewEmailSender(*conf, shutdown)
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)

@@ -15,3 +15,9 @@ database:
   password: postgres
   database: auc_auth_dev
   connection_limit: 10
+email:
+  host: localhost
+  port: 1025
+  user: user
+  password: password
+  mandatory_tls: false
