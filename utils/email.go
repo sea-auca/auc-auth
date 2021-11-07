@@ -1,22 +1,13 @@
 package utils
 
 import (
-	"io"
 	"sea/auth/config"
 
 	"go.uber.org/zap"
 	"gopkg.in/mail.v2"
 )
 
-type EmailSender struct {
-	d mail.Sender
-}
-
-func (e EmailSender) Send(from string, to []string, msg io.WriterTo) error {
-	return e.d.Send(from, to, msg)
-}
-
-func NewEmailSender(conf config.AppConfig, sh *Shutdown) (*EmailSender, error) {
+func NewEmailSender(conf config.AppConfig, sh *Shutdown) (mail.Sender, error) {
 	d := mail.NewDialer(conf.EmailConfig.Host, conf.EmailConfig.Port, conf.EmailConfig.User, conf.EmailConfig.Password)
 	if conf.EmailConfig.MandatoryTLS {
 		d.StartTLSPolicy = mail.MandatoryStartTLS
@@ -29,10 +20,10 @@ func NewEmailSender(conf config.AppConfig, sh *Shutdown) (*EmailSender, error) {
 		return nil, err
 	}
 	sh.Add(close.Close)
-	return &EmailSender{close}, nil
+	return close, nil
 }
 
-func TestEmail(d *EmailSender) {
+func TestEmail(d mail.Sender) {
 	m := mail.NewMessage()
 	m.SetHeader("From", "sea@auca.kg")
 	m.SetHeader("To", "student_s@auca.kg")

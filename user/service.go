@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"sea/auth/utils"
 	"time"
 
 	"github.com/go-rel/changeset/params"
@@ -38,11 +37,11 @@ type UserService interface {
 type service struct {
 	repo     UserRepository
 	lg       *zap.SugaredLogger
-	email    utils.EmailSender
+	email    mail.Sender
 	linkRepo VerificationRepository
 }
 
-func NewService(repo UserRepository, email utils.EmailSender, vRepo VerificationRepository) UserService {
+func NewService(repo UserRepository, email mail.Sender, vRepo VerificationRepository) UserService {
 	return service{
 		repo:     repo,
 		lg:       zap.S().With("service", "user"),
