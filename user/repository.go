@@ -17,7 +17,7 @@ type postgresRepository struct {
 	repo   r.Repository
 }
 
-func (repo postgresRepository) ChangeUser(user interface{}, p params.Params) *changeset.Changeset {
+func ChangeUser(user interface{}, p params.Params) *changeset.Changeset {
 	logger := zap.S() // get global logger
 	ch := changeset.Cast(user, p, []string{"fullname", "password", "verified"})
 	if ch.Get("password") != nil { // the password branch checks if password was changed and updates the hash
@@ -37,8 +37,7 @@ func (repo postgresRepository) ChangeUser(user interface{}, p params.Params) *ch
 		changeset.PutChange(ch, "hash", hash) // update the hash with new password
 	}
 AfterPassword:
-	changeset.ValidateRequired(ch, []string{"fullname", "verified"})
-	changeset.ValidateMin(ch, "fullname", 4)
+	changeset.ValidateRequired(ch, []string{"email", "verified"})
 	changeset.ValidatePattern(ch, "email", aucaEmail)
 	return ch
 }
