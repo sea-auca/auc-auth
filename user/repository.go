@@ -108,22 +108,16 @@ func (rp postgresLinkRepo) SearchByUser(ctx context.Context, id UUID) ([]*Verifi
 
 //Sets expiration date for a link to current time
 func (rp postgresLinkRepo) DeactivateLink(ctx context.Context, uuid UUID, code string) error {
-	vls, err := rp.SearchByUser(ctx, uuid)
+	var link *VerificationLink
+	err := rp.repo.Find(ctx, link, r.Select().Where(r.Eq("code", code), r.Eq("user_id", uuid)))
 	if err != nil {
 		return err
 	}
-	var vl *VerificationLink
-	for _, v := range vls {
-		if v.Link == code {
-			vl = v
-			break
-		}
-	}
-	if vl == nil {
+	if link == nil {
 		return errors.New("could not find the verification link by code")
 	}
-	vl.ExpiresAt = time.Now()
-	err = rp.repo.Update(ctx, vl)
+	link.ExpiresAt = time.Now()
+	err = rp.repo.Update(ctx, link)
 	return err
 }
 
