@@ -3,12 +3,13 @@ module sea/auth
 go 1.17
 
 require (
-	github.com/go-rel/rel v0.29.1
+	github.com/go-rel/rel v0.29.2
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 )
 
 require (
 	github.com/go-rel/changeset v1.0.0
+	github.com/go-rel/postgres v0.5.0
 	github.com/go-rel/reltest v0.4.0
 	github.com/google/uuid v1.3.0
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
@@ -18,10 +19,15 @@ require (
 require (
 	github.com/azer/snakecase v1.0.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/go-rel/sql v0.6.0 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/stretchr/objx v0.3.0 // indirect
 	github.com/tidwall/gjson v1.11.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
+	golang.org/x/net v0.0.0-20211105192438-b53810dc28af // indirect
+	golang.org/x/sys v0.0.0-20211107104306-e0b2ad06fe42 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 )
 

@@ -7,8 +7,8 @@ import (
 	"sea/auth/config"
 	"sea/auth/utils"
 
+	"github.com/go-rel/postgres"
 	"github.com/go-rel/rel"
-	"github.com/go-rel/rel/adapter/postgres"
 	_ "github.com/lib/pq"
 )
 
