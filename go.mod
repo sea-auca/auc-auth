@@ -2,6 +2,8 @@ module sea/auth
 
 go 1.17
 
+replace github.com/go-rel/changeset => /home/ehdw/dev/open/changeset
+
 require (
 	github.com/go-rel/rel v0.29.2
 	github.com/golang-jwt/jwt v3.2.2+incompatible
@@ -19,6 +21,9 @@ require (
 require (
 	github.com/azer/snakecase v1.0.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/go-kit/kit v0.12.0 // indirect
+	github.com/go-kit/log v0.2.0 // indirect
+	github.com/go-logfmt/logfmt v0.5.1 // indirect
 	github.com/go-rel/sql v0.6.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect

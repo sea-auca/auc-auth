@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"sea/auth/config"
 	"sea/auth/db"
+	"sea/auth/user"
 	"sea/auth/utils"
 	"syscall"
 
@@ -26,12 +27,17 @@ func main() {
 
 	//SERVICES INITIALISATION STEP
 
-	_, err = db.ConnectDatabase(conf, shutdown)
+	repo, err := db.ConnectDatabase(conf, shutdown)
 
 	if err != nil {
 		logger.Fatalw("Could not connect to the database", "Error", err)
 	}
-	_, _ = utils.NewEmailSender(*conf, shutdown)
+	email, _ := utils.NewEmailSender(*conf, shutdown)
+
+	userRepo, verLinkRepo := user.NewUserRepository(repo), user.NewVerificationRepository(repo)
+	userService := user.NewService(userRepo, email, verLinkRepo)
+
+	go user.NewHTTP(userService)
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
