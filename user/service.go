@@ -17,7 +17,7 @@ var ErrNotImplemented = errors.New("unimplemented function")
 type UserService interface {
 	// CUD ops
 
-	RegisterUser(ctx context.Context, email string) (*User, error)
+	RegisterUser(ctx context.Context, email string) error
 	DeactivateAccount(ctx context.Context, u *User) error
 	ReactivateAccount(ctx context.Context, email string) error
 	UpdateUser(ctx context.Context, u *User, p params.Params) error
@@ -66,30 +66,30 @@ func (s service) sendVereficationEmail(code, email string) error {
 }
 
 // Creates a placeholder record for user and send an email for verification
-func (s service) RegisterUser(ctx context.Context, email string) (*User, error) {
+func (s service) RegisterUser(ctx context.Context, email string) error {
 	newUser := NewUser(email)
 	changeset := ChangeUser(newUser, params.Map{})
 	if changeset.Error() != nil {
 		s.lg.Errorw("failed to create new user", "reason", changeset.Errors())
-		return nil, changeset.Error()
+		return changeset.Error()
 	}
 	user, err := s.repo.Create(ctx, newUser)
 	if err != nil {
 		s.lg.Errorw("failed to create user", "error", err)
-		return nil, err
+		return err
 	}
 
 	vl := NewVerificationLink(user.UUID, time.Hour*24*7, false)
 	vl, err = s.linkRepo.Create(ctx, vl)
 	if err != nil {
 		s.lg.Errorw("failed to create invite link", "error", err)
-		return nil, err
+		return err
 	}
 	err = s.sendVereficationEmail(vl.Link, email)
 	if err != nil {
 		s.lg.Errorw("failed to send the email for invite", "error", err)
 	}
-	return user, nil
+	return nil
 }
 
 // Suspends user's account. It can be later reactivated
