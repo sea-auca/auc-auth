@@ -32,7 +32,7 @@ type User struct {
 	UpdatedAt    time.Time
 }
 
-const aucaEmail = "`^([a-z]+)(_){1}[a-z]{1,4}(@auca.kg|@alumni.auca.kg)$`gm"
+const aucaEmail = `([a-z]+)(_){1}[a-z]{1,4}(@auca.kg|@alumni.auca.kg)`
 
 func (u User) Table() string {
 	return "user_space.users"
@@ -45,7 +45,7 @@ func NewUser(email string) *User {
 type UserRepository interface {
 	//cruds
 
-	Create(ctx context.Context, u *User) (*User, error)
+	Create(ctx context.Context, u *User, ch ...rel.Mutator) (*User, error)
 	Update(ctx context.Context, u *User) error
 	RelUpdate(ctx context.Context, u *User, ch ...rel.Mutator) error // this breaks clean architecture completely!
 	//getters

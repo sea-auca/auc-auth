@@ -19,7 +19,7 @@ type postgresRepository struct {
 
 func ChangeUser(user interface{}, p params.Params) *changeset.Changeset {
 	logger := zap.S() // get global logger
-	ch := changeset.Cast(user, p, []string{"fullname", "password", "verified"})
+	ch := changeset.Cast(user, p, []string{"fullname", "password", "email", "verified"})
 	if ch.Get("password") != nil { // the password branch checks if password was changed and updates the hash
 		changeset.ValidateMin(ch, "password", 9)
 		val, ok := ch.Get("password").([]byte)
@@ -37,7 +37,13 @@ func ChangeUser(user interface{}, p params.Params) *changeset.Changeset {
 		changeset.PutChange(ch, "hash", hash) // update the hash with new password
 	}
 AfterPassword:
-	changeset.ValidateRequired(ch, []string{"email", "verified"})
+	if ch.Values()["uuid"].(UUID) == "" {
+		newUser := NewUser(ch.Get("email").(string))
+		changeset.PutChange(ch, "uuid", newUser.UUID)
+		changeset.PutChange(ch, "permissions", newUser.AccessLevels)
+		changeset.PutChange(ch, "active", newUser.Active)
+	}
+	changeset.ValidateRequired(ch, []string{"email", "active", "uuid"})
 	changeset.ValidatePattern(ch, "email", aucaEmail)
 	return ch
 }
@@ -46,8 +52,8 @@ func NewUserRepository(repo r.Repository) UserRepository {
 	return postgresRepository{logger: zap.S(), repo: repo}
 }
 
-func (rp postgresRepository) Create(ctx context.Context, u *User) (*User, error) {
-	err := rp.repo.Insert(ctx, u)
+func (rp postgresRepository) Create(ctx context.Context, u *User, ch ...r.Mutator) (*User, error) {
+	err := rp.repo.Insert(ctx, u, ch...)
 	return u, err
 }
 

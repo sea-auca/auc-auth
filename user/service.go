@@ -67,19 +67,19 @@ func (s service) sendVereficationEmail(code, email string) error {
 
 // Creates a placeholder record for user and send an email for verification
 func (s service) RegisterUser(ctx context.Context, email string) error {
-	newUser := NewUser(email)
-	changeset := ChangeUser(newUser, params.Map{})
+	var newUser User
+	changeset := ChangeUser(newUser, params.Map{"email": email})
 	if changeset.Error() != nil {
-		s.lg.Errorw("failed to create new user", "reason", changeset.Errors())
+		s.lg.Errorw("failed to create new user", "reason", changeset.Errors(), "changeset value", changeset.Changes())
 		return changeset.Error()
 	}
-	user, err := s.repo.Create(ctx, newUser)
+	_, err := s.repo.Create(ctx, &newUser, changeset)
 	if err != nil {
-		s.lg.Errorw("failed to create user", "error", err)
+		s.lg.Errorw("failed to create user", "error", err, "user", newUser)
 		return err
 	}
 
-	vl := NewVerificationLink(user.UUID, time.Hour*24*7, false)
+	vl := NewVerificationLink(newUser.UUID, time.Hour*24*7, false)
 	vl, err = s.linkRepo.Create(ctx, vl)
 	if err != nil {
 		s.lg.Errorw("failed to create invite link", "error", err)
