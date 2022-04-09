@@ -27,6 +27,9 @@ type AppConfig struct {
 		Host string
 		Port int
 	}
+	Service struct {
+		VerificationPrefix string
+	}
 }
 
 var conf AppConfig
@@ -46,6 +49,7 @@ func Init(lg *zap.Logger) {
 	conf.Database.User = readField("DATABASE_USER")
 	conf.Database.Password = readField("DATABASE_PASSWORD")
 	conf.Database.Database = readField("DATABASE_NAME")
+	conf.Service.VerificationPrefix = readField("SERVICE_VERIFY_URL")
 }
 
 func Config() AppConfig {

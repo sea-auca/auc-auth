@@ -12,7 +12,7 @@ export
 build: mod_tidy create_docker tag_latest
 	
 run:
-	go run cmd/main.go
+	go run cmd/cmd.go
 
 #Run docker image on host network
 drun: down_container image

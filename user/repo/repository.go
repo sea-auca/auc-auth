@@ -8,6 +8,7 @@ import (
 	"github.com/go-rel/changeset"
 	"github.com/go-rel/changeset/params"
 	r "github.com/go-rel/rel"
+	"github.com/google/uuid"
 	"github.com/sea-auca/auc-auth/user/service"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
@@ -38,14 +39,11 @@ func ChangeUser(user interface{}, p params.Params) *changeset.Changeset {
 		changeset.PutChange(ch, "hash", hash) // update the hash with new password
 	}
 AfterPassword:
-	if ch.Values()["uuid"].(service.UUID) == "" {
+	if ch.Values()["uuid"].(string) == "" {
 		newUser := service.NewUser(ch.Get("email").(string))
-		changeset.PutChange(ch, "uuid", newUser.UUID)
-		changeset.PutChange(ch, "permissions", newUser.AccessLevels)
-		changeset.PutChange(ch, "active", newUser.Active)
+		changeset.PutChange(ch, "uuid", newUser.ID)
 	}
 	changeset.ValidateRequired(ch, []string{"email", "active", "uuid"})
-	changeset.ValidatePattern(ch, "email", service.AucaEmail)
 	return ch
 }
 
@@ -53,8 +51,8 @@ func NewUserRepository(repo r.Repository) service.UserRepository {
 	return postgresRepository{logger: zap.S(), repo: repo}
 }
 
-func (rp postgresRepository) Create(ctx context.Context, u *service.User, ch ...r.Mutator) (*service.User, error) {
-	err := rp.repo.Insert(ctx, u, ch...)
+func (rp postgresRepository) Create(ctx context.Context, u *service.User) (*service.User, error) {
+	err := rp.repo.Insert(ctx, u)
 	return u, err
 }
 
@@ -62,14 +60,10 @@ func (rp postgresRepository) Update(ctx context.Context, u *service.User) error 
 	return rp.repo.Update(ctx, u)
 }
 
-func (rp postgresRepository) RelUpdate(ctx context.Context, u *service.User, ch ...r.Mutator) error {
-	return rp.repo.Update(ctx, u, ch...)
-}
-
-func (rp postgresRepository) GetByID(ctx context.Context, id service.UUID) (*service.User, error) {
-	var u *service.User
-	err := rp.repo.Find(ctx, u, r.Where(r.Eq("uuid", id)))
-	return u, err
+func (rp postgresRepository) GetByID(ctx context.Context, id uuid.UUID) (*service.User, error) {
+	var u service.User
+	err := rp.repo.Find(ctx, &u, r.Where(r.Eq("id", id)))
+	return &u, err
 }
 
 func (rp postgresRepository) GetByEmail(ctx context.Context, email string) (*service.User, error) {
@@ -101,22 +95,16 @@ func (rp postgresLinkRepo) Create(ctx context.Context, vl *service.VerificationL
 	return vl, err
 }
 
-func (rp postgresLinkRepo) SearchByCode(ctx context.Context, code string) (*service.VerificationLink, error) {
-	var vl *service.VerificationLink
-	err := rp.repo.Find(ctx, vl, r.Where(r.Eq("code", code)))
-	return vl, err
-}
-
-func (rp postgresLinkRepo) SearchByUser(ctx context.Context, id service.UUID) ([]*service.VerificationLink, error) {
-	var vl []*service.VerificationLink
-	err := rp.repo.FindAll(ctx, vl, r.Select().SortDesc("created_at").Where(r.Eq("user_id", id)))
-	return vl, err
+func (rp postgresLinkRepo) SearchByID(ctx context.Context, id uuid.UUID) (*service.VerificationLink, error) {
+	var vl service.VerificationLink
+	err := rp.repo.Find(ctx, &vl, r.Where(r.Eq("id", id)))
+	return &vl, err
 }
 
 //Sets expiration date for a link to current time
-func (rp postgresLinkRepo) DeactivateLink(ctx context.Context, uuid service.UUID, code string) error {
+func (rp postgresLinkRepo) DeactivateLink(ctx context.Context, id uuid.UUID) error {
 	var link *service.VerificationLink
-	err := rp.repo.Find(ctx, link, r.Select().Where(r.Eq("code", code), r.Eq("user_id", uuid)))
+	err := rp.repo.Find(ctx, link, r.Select().Where(r.Eq("id", id)))
 	if err != nil {
 		return err
 	}
@@ -125,22 +113,5 @@ func (rp postgresLinkRepo) DeactivateLink(ctx context.Context, uuid service.UUID
 	}
 	link.ExpiresAt = time.Now()
 	err = rp.repo.Update(ctx, link)
-	return err
-}
-
-//Deactivate all links for specified user
-func (rp postgresLinkRepo) DeactivateAllLinks(ctx context.Context, uuid service.UUID) error {
-	vls, err := rp.SearchByUser(ctx, uuid)
-	if err != nil {
-		return err
-	}
-	var codes []string
-	for _, v := range vls {
-		codes = append(codes, v.Link)
-	}
-	_, err = rp.repo.UpdateAny(ctx,
-		r.From("user_space.verify_links").Where(r.In("code", codes)),
-		r.Set("expires_at", time.Now()),
-	)
 	return err
 }
