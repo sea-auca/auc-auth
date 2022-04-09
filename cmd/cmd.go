@@ -5,12 +5,14 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"sea/auth/config"
-	"sea/auth/db"
-	"sea/auth/user"
-	"sea/auth/utils"
 	"syscall"
 
+	"github.com/sea-auca/auc-auth/config"
+	"github.com/sea-auca/auc-auth/db"
+	"github.com/sea-auca/auc-auth/user/repo"
+	"github.com/sea-auca/auc-auth/user/server"
+	"github.com/sea-auca/auc-auth/user/service"
+	"github.com/talkanbaev-artur/shutdown"
 	"go.uber.org/zap"
 )
 
@@ -21,23 +23,21 @@ func main() {
 		log.Fatal(err)
 	}
 	// create global defer object
-	shutdown := utils.NewShutdown()
+	shutdown := shutdown.NewShutdown()
 	logger := InitLogger(shutdown) // init logger
 	ctx, cancel := context.WithCancel(context.Background())
 
 	//SERVICES INITIALISATION STEP
 
-	repo, err := db.ConnectDatabase(conf, shutdown)
+	rep, err := db.ConnectDatabase(conf, shutdown)
 
 	if err != nil {
 		logger.Fatalw("Could not connect to the database", "Error", err)
 	}
-	email, _ := utils.NewEmailSender(*conf, shutdown)
+	userRepo, verLinkRepo := repo.NewUserRepository(rep), repo.NewVerificationRepository(rep)
+	userService := service.NewService(userRepo, email, verLinkRepo)
 
-	userRepo, verLinkRepo := user.NewUserRepository(repo), user.NewVerificationRepository(repo)
-	userService := user.NewService(userRepo, email, verLinkRepo)
-
-	go user.NewHTTP(userService)
+	go server.NewHTTP(userService)
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
@@ -58,7 +58,7 @@ func main() {
 	}
 }
 
-func InitLogger(shutdown *utils.Shutdown) *zap.SugaredLogger {
+func InitLogger(shutdown *shutdown.Shutdown) *zap.SugaredLogger {
 	log1, err := zap.NewDevelopment()
 	if err != nil {
 		log.Fatal(err)

@@ -1,4 +1,4 @@
-package user
+package service
 
 import (
 	"context"
@@ -32,7 +32,7 @@ type User struct {
 	UpdatedAt    time.Time
 }
 
-const aucaEmail = `([a-z]+)(_){1}[a-z]{1,4}(@auca.kg|@alumni.auca.kg)`
+const AucaEmail = `([a-z]+)(_){1}[a-z]{1,4}(@auca.kg|@alumni.auca.kg)`
 
 func (u User) Table() string {
 	return "user_space.users"

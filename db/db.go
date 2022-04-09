@@ -4,17 +4,17 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"sea/auth/config"
-	"sea/auth/utils"
 
 	"github.com/go-rel/postgres"
 	"github.com/go-rel/rel"
 	_ "github.com/lib/pq"
+	"github.com/sea-auca/auc-auth/config"
+	"github.com/talkanbaev-artur/shutdown"
 )
 
 var ErrNoCredentials = errors.New("no credentials were supplied for production environment")
 
-func ConnectDatabase(conf *config.AppConfig, shutdown *utils.Shutdown) (rel.Repository, error) {
+func ConnectDatabase(conf *config.AppConfig, shutdown *shutdown.Shutdown) (rel.Repository, error) {
 
 	// read credentials from environment variables for production
 	// in development this code will not be executed and will use
