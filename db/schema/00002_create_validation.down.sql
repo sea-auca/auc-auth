@@ -1,0 +1,1 @@
+drop table is exists users.validation_requests;
