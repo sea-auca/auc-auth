@@ -2,55 +2,65 @@ package service
 
 import (
 	"context"
+	"regexp"
 	"time"
 
-	"github.com/go-rel/rel"
 	"github.com/google/uuid"
 )
 
-type UUID string
-
-func (id UUID) Parsed() uuid.UUID {
-	return uuid.MustParse(string(id))
-}
-
-func UUIDFromBytes(id uuid.UUID) UUID {
-	return UUID(id.String())
-}
+//auca email regex
+const aucaEmail = `([a-z]+)(_){1}[a-z]{1,4}(@auca.kg|@alumni.auca.kg)`
 
 //Main user model struct
 type User struct {
-	Email        string
-	Fullname     string
-	Hash         string      //bcrypt hash
-	Password     string      `db:"-"` // virtual field that will automatically converted to hash
-	UUID         UUID        `db:"uuid,primary"`
-	AccessLevels Permissions `db:"permissions"`
-	Active       bool        //deactivated account are *deleted*
-	Verified     bool        //flag is set automatically after verification of email
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+	ID          uuid.UUID `db:",primary"`
+	Email       string
+	IsActive    bool //deactivated account are *deleted*
+	IsValidated bool //flag is set automatically after verification of email
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
-const AucaEmail = `([a-z]+)(_){1}[a-z]{1,4}(@auca.kg|@alumni.auca.kg)`
+type UserData struct {
+	UserID          uuid.UUID `db:"user_id,primary"`
+	FirstName       string
+	LastName        string
+	AvatarURL       string
+	Department      string
+	YearOfAdmission int
+	BirthDate       time.Time
+	UpdatedAt       time.Time
+}
+
+type AuthSettings struct {
+	UserID                uuid.UUID `db:"user_id,primary"`
+	RefreshTokenRetention int       `db:"refresh_token_retention_in_hours"`
+	TokenRetention        int       `db:"main_token_retention_in_minutes"`
+	EnforceTwoFactorAuth  bool
+	UpdatedAt             time.Time
+}
 
 func (u User) Table() string {
-	return "user_space.users"
+	return `users.users`
 }
 
 func NewUser(email string) *User {
-	return &User{Email: email, UUID: UUID(uuid.NewString()), AccessLevels: None, Active: true}
+	return &User{Email: email, ID: uuid.New()}
 }
 
 type UserRepository interface {
 	//cruds
 
-	Create(ctx context.Context, u *User, ch ...rel.Mutator) (*User, error)
+	Create(ctx context.Context, u *User) (*User, error)
 	Update(ctx context.Context, u *User) error
-	RelUpdate(ctx context.Context, u *User, ch ...rel.Mutator) error // this breaks clean architecture completely!
 	//getters
 
-	GetByID(ctx context.Context, id UUID) (*User, error)
+	GetByID(ctx context.Context, id uuid.UUID) (*User, error)
 	GetByEmail(ctx context.Context, email string) (*User, error)
 	PaginatedView(ctx context.Context, page, pageSize int) ([]*User, int, error)
+}
+
+func IsAucaEmail(email string) bool {
+	match, _ := regexp.MatchString(aucaEmail, email)
+	return match
 }
