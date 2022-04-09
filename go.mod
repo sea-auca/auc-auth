@@ -9,10 +9,12 @@ require (
 
 require (
 	github.com/go-kit/kit v0.12.0
+	github.com/go-kit/log v0.2.0
 	github.com/go-rel/changeset v1.1.0
 	github.com/go-rel/postgres v0.5.0
 	github.com/go-rel/reltest v0.4.0
 	github.com/google/uuid v1.3.0
+	github.com/gorilla/mux v1.8.0
 	github.com/talkanbaev-artur/shutdown v0.0.0-20220131051657-6e9c006218ba
 	golang.org/x/crypto v0.0.0-20211108221036-ceb1ce70b4fa
 	gopkg.in/mail.v2 v2.3.1
@@ -21,7 +23,6 @@ require (
 require (
 	github.com/azer/snakecase v1.0.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/go-kit/log v0.2.0 // indirect
 	github.com/go-logfmt/logfmt v0.5.1 // indirect
 	github.com/go-rel/sql v0.6.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
@@ -41,5 +42,5 @@ require (
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.7.0 // indirect
 	go.uber.org/zap v1.20.0
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
+	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
