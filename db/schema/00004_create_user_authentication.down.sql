@@ -1,2 +1,2 @@
-drop table if not exists users.authentication_settings;
-drop table if not exists users.credentials; 
+drop table if exists users.authentication_settings;
+drop table if exists users.credentials; 

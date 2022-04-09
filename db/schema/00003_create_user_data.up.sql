@@ -4,9 +4,9 @@ create table if not exists users.auca_departments (
 );
 
 create table if not exists users.user_data (
-    user_id uuid not null,
-    first_name varchar(60) not null,
-    last_name varchar(100) not null,
+    user_id uuid not null primary key,
+    first_name varchar(60),
+    last_name varchar(100),
     avatar_url varchar(300),
     department_id smallint,
     year_of_admission smallint,
@@ -20,5 +20,5 @@ create table if not exists users.user_data (
         foreign key (department_id)
             references users.auca_departments(id),
     constraint ch_admission_year
-        check (year_of_admission > 1992 and year_of_admission < date_part('year', date('now')) + 1)
+        check ((year_of_admission > 1992 and year_of_admission < date_part('year', date('now')) + 1) or year_of_admission is null)
 );

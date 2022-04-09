@@ -1,1 +1,1 @@
-drop table is exists users.validation_requests;
+drop table if exists users.validation_requests;

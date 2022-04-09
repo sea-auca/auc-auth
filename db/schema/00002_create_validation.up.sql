@@ -4,8 +4,9 @@ create table if not exists users.validation_requests(
     was_utilised boolean not null default('false'),
     created_at timestamptz not null default('now'),
     updated_at timestamptz not null default('now'),
+    expires_at timestamptz not null,
 
     constraint fk_validation_requests_users
-        foreign key user_id
+        foreign key (user_id)
             references users.users(id) 
 );
