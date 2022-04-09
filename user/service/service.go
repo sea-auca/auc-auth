@@ -7,7 +7,6 @@ import (
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
-	"gopkg.in/mail.v2"
 )
 
 var (
@@ -31,7 +30,6 @@ type UserService interface {
 type service struct {
 	repo     UserRepository
 	lg       *zap.SugaredLogger
-	email    mail.Sender
 	linkRepo VerificationRepository
 }
 
@@ -109,7 +107,7 @@ func (s service) ReactivateAccount(ctx context.Context, email string) error {
 func (s service) GetUserByID(ctx context.Context, ID uuid.UUID) (*User, error) {
 	user, err := s.repo.GetByID(ctx, ID)
 	if err != nil {
-		s.lg.Errorw("failed to fetch user with uuid", "uuid", ID, "error", err)
+		s.lg.Errorw("failed to fetch user with uuid", zap.String("id", ID.String()), zap.Error(err))
 	}
 	return user, err
 }
@@ -118,7 +116,7 @@ func (s service) GetUserByID(ctx context.Context, ID uuid.UUID) (*User, error) {
 func (s service) GetUserByEmail(ctx context.Context, email string) (*User, error) {
 	user, err := s.repo.GetByEmail(ctx, email)
 	if err != nil {
-		s.lg.Errorw("failed to fetch user with email", "email", email, "error", err)
+		s.lg.Error("failed to fetch user with email", zap.String("email", email), zap.Error(err))
 	}
 	return user, err
 }
@@ -132,15 +130,17 @@ func (s service) ListUsers(ctx context.Context, page, pageSize int) ([]*User, in
 func (s service) ValidateUser(ctx context.Context, validationID uuid.UUID) error {
 	vl, err := s.linkRepo.SearchByID(ctx, validationID)
 	if err != nil {
-		s.lg.Errorw("failed to verify user, link is abscent", zap.Error(err))
+		s.lg.Error("failed to verify user, link is abscent", zap.Error(err))
 		return err
 	}
 	user, err := s.repo.GetByID(ctx, vl.UserID)
 	if err != nil {
 		return err
 	}
+	user.IsActive = true
 	user.IsValidated = true
 	err = s.repo.Update(ctx, user)
+	err = s.linkRepo.DeactivateLink(ctx, vl.ID)
 	if err != nil {
 		s.lg.Errorw("failed to verify user", "reason", err, "user", user.ID)
 	}

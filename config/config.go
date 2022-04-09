@@ -56,6 +56,10 @@ func Config() AppConfig {
 	return conf
 }
 
+func EditbleConfig() *AppConfig {
+	return &conf
+}
+
 func readField(f string) string {
 	val := os.Getenv(f)
 	if val == "" {

@@ -13,7 +13,6 @@ require (
 	github.com/go-rel/changeset v1.2.0
 	github.com/go-rel/postgres v0.7.0
 	github.com/go-rel/reltest v0.9.0
-	github.com/gofrs/uuid v4.0.0+incompatible
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/mux v1.8.0
 	github.com/jackc/pgx/v4 v4.15.0
@@ -36,6 +35,7 @@ require (
 	github.com/jackc/pgtype v1.10.0 // indirect
 	github.com/jackc/puddle v1.2.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/stretchr/objx v0.3.0 // indirect
 	github.com/tidwall/gjson v1.14.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
@@ -46,6 +46,7 @@ require (
 )
 
 require (
+	github.com/jarcoal/httpmock v1.1.0
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/lib/pq v1.10.5
 	github.com/serenize/snaker v0.0.0-20201027110005-a7ad2135616e // indirect
