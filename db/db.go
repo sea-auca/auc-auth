@@ -40,7 +40,9 @@ func ConnectPGXDatabase(ctx context.Context) *pgxpool.Pool {
 		zap.L().Fatal("Failed to configure the PGX driver connection", zap.Error(err))
 	}
 
-	logger, _ := zap.NewDevelopment(zap.DebugLevel)
+	logConf := zap.NewDevelopmentConfig()
+	logConf.Level = zap.NewAtomicLevelAt(zap.DebugLevel)
+	logger, _ := logConf.Build()
 	config.ConnConfig.Logger = zapadapter.NewLogger(logger)
 	conn, err := pgxpool.ConnectConfig(ctx, config)
 	if err != nil {

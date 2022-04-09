@@ -31,7 +31,6 @@ func main() {
 	rep, err := db.ConnectDatabase(shutdown)
 	_ = db.ConnectPGXDatabase(ctx)
 	serv, router := NewServer()
-
 	if err != nil {
 		logger.Fatal("Could not connect to the database", zap.Error(err))
 	}
@@ -43,7 +42,7 @@ func main() {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 
-	go logger.Error("Fatal http server error", zap.Error(serv.ListenAndServe()))
+	go Listen(logger, serv)
 
 	go func() {
 		oscall := <-c
@@ -80,4 +79,8 @@ func NewServer() (http.Server, *mux.Router) {
 		Handler:     r,
 	}
 	return serv, r
+}
+
+func Listen(logger *zap.Logger, serv http.Server) {
+	logger.Error("Fatal http server error", zap.Error(serv.ListenAndServe()))
 }
