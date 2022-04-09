@@ -1,45 +1,47 @@
-package user_test
+package repo_test
 
 import (
 	"context"
-	"sea/auth/user"
 	"testing"
 	"time"
+
+	"github.com/sea-auca/auc-auth/user/repo"
+	"github.com/sea-auca/auc-auth/user/service"
 
 	"github.com/go-rel/rel"
 	"github.com/go-rel/reltest"
 	"github.com/stretchr/testify/assert"
 )
 
-var testUser = user.NewUser("email@domain.com")
+var testUser = service.NewUser("email@domain.com")
 
 func TestCreate(t *testing.T) {
-	repo := reltest.New()
-	r := user.NewUserRepository(repo)
+	rep := reltest.New()
+	r := repo.NewUserRepository(rep)
 	u := *testUser //new user is created
-	repo.ExpectInsert().ForType("*user.User")
+	rep.ExpectInsert().ForType("*service.User")
 	_, err := r.Create(context.TODO(), &u)
 	assert.Nil(t, err)
-	repo.AssertExpectations(t)
+	rep.AssertExpectations(t)
 }
 
 func TestUpdate(t *testing.T) {
-	repo := reltest.New()
-	r := user.NewUserRepository(repo)
+	rep := reltest.New()
+	r := repo.NewUserRepository(rep)
 	u := *testUser // suppose the testUser replaces old value
-	repo.ExpectUpdate().ForType("*user.User")
+	rep.ExpectUpdate().ForType("*user.User")
 	err := r.Update(context.TODO(), &u)
 	assert.Nil(t, err)
-	repo.AssertExpectations(t)
+	rep.AssertExpectations(t)
 }
 
 func TestPaginatedView(t *testing.T) {
-	repo := reltest.New()
-	r := user.NewUserRepository(repo)
+	rep := reltest.New()
+	r := repo.NewUserRepository(rep)
 	u := *testUser
 	u.CreatedAt = time.Now().Add(time.Minute)
-	result := []*user.User{&u, testUser}
-	repo.ExpectFindAndCountAll(
+	result := []*service.User{&u, testUser}
+	rep.ExpectFindAndCountAll(
 		rel.Select().SortDesc("created_at").Limit(5).Offset(1*5),
 	).Result(result, len(result))
 

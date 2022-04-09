@@ -1,22 +1,24 @@
-IMAGE_NAME = auc-authentication #docker image name
-IMAGE_VERSION = 0.1.0 #this value tags the docker image
+#docker image name
+IMAGE_NAME = sea.auca.kg/auc-auth
+IMAGE_VERSION = 0.0.1
 
-all: build #default command build the project
+.SILENT: run clean
 
-.SILENT: run clean #these commands run silently
+include .env
+export
 
 # DEVELOPMENT OPERATIONS
 
-build:
-	go build -o bin/main cmd/cmd.go
+build: mod_tidy create_docker tag_latest
 	
 run:
 	go run cmd/cmd.go
 
+#Run docker image on host network
+drun: down_container image
+	docker run --name $(IMAGE_NAME) --network=host -d $(IMAGE_NAME):latest
 # PRODUCTION BUILDS
 
-#create image and tag it as latest
-image: mod_tidy create_docker tag_latest
 
 create_docker:
 	docker build --tag $(IMAGE_NAME):$(IMAGE_VERSION) .
@@ -26,6 +28,9 @@ tag_latest:
 
 mod_tidy: #preparation step - in case of go.sum file is missing
 	go mod tidy
+
+down_container:
+	docker stop $(IMAGE_NAME) || true && docker rm $(IMAGE_NAME) || true
 
 # CLEANING
 

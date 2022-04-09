@@ -1,75 +1,77 @@
 package config
 
 import (
-	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
+	"strconv"
 
-	"gopkg.in/yaml.v3"
+	"go.uber.org/zap"
 )
 
 //Main application configuration
 type AppConfig struct {
-	IsDevelopmentConfig bool `yaml:"is_dev"` //Development environment indicator - implemented stupidly but works
 	// Http server configuration block. Has basic host and port params with default timeout values
-	ServerConfig struct {
-		Host    string   `yaml:"host"`
-		Port    string   `yaml:"port"`
-		Timeout struct { // Timeout struct, which includes default timeout values
-			Read  int
-			Write int
-		}
-	} `yaml:"server"`
-	// Database configuration block - used for DSN construction
-	DatabaseConfig struct {
-		Host            string
-		Port            string
-		User            string // dev only username yaml field - in production it is read from env
-		Password        string // dev only password yaml field - in production it is read from env
-		Database        string
-		ConnectionLimit int `yaml:"connection_limit"`
-	} `yaml:"database"`
+	Server struct {
+		Port        int
+		ReadTimeout int
+	}
+	Database struct {
+		Host     string
+		Port     string
+		User     string
+		Password string
+		Database string
+	}
 	// configuration for the email sender
-	EmailConfig struct {
-		Host         string
-		Port         int
-		User         string
-		Password     string
-		MandatoryTLS bool `yaml:"mandatory_tls"`
-	} `yaml:"email"`
+	Email struct {
+		Host string
+		Port int
+	}
+	Service struct {
+		VerificationPrefix string
+	}
 }
 
-var ErrNoConfigFile = errors.New("config file does not exist")
-var ErrFileIssue = errors.New("config file can not be opened")
-var ErrParseIssue = errors.New("configuration file can not be parsed")
+var conf AppConfig
 
-//Reads configuration from hardcoded file or from path specified by env variable
-func ReadConfig() (*AppConfig, error) {
-	path, _ := filepath.Abs("./config/config.dev.yml") // make absolute for portability
-	if val, exists := os.LookupEnv("PROD_CONFIG"); exists {
-		path = val // if env is specified - forget about hardcoded value and use one from env instead
+func Init(lg *zap.Logger) {
+	defer func() {
+		if r := recover(); r != nil {
+			lg.Fatal("Failed to initialise configuration", zap.Any("error", r))
+		}
+	}()
+	conf.Server.Port = readIntField("SERVER_PORT")
+	conf.Server.ReadTimeout = readIntField("SERVER_READTIMEOUT")
+	conf.Email.Host = readField("EMAIL_HOST")
+	conf.Email.Port = readIntField("EMAIL_PORT")
+	conf.Database.Host = readField("DATABASE_HOST")
+	conf.Database.Port = readField("DATABASE_PORT")
+	conf.Database.User = readField("DATABASE_USER")
+	conf.Database.Password = readField("DATABASE_PASSWORD")
+	conf.Database.Database = readField("DATABASE_NAME")
+	conf.Service.VerificationPrefix = readField("SERVICE_VERIFY_URL")
+}
+
+func Config() AppConfig {
+	return conf
+}
+
+func readField(f string) string {
+	val := os.Getenv(f)
+	if val == "" {
+		panic(fmt.Errorf("key %s is not present. panic", f))
 	}
+	return val
+}
 
-	_, err := os.Stat(path)
-	if os.IsNotExist(err) { // check that file actually exists
-		return nil, ErrNoConfigFile
+func readIntField(f string) int {
+	val := os.Getenv(f)
+	if val == "" {
+		panic(fmt.Errorf("key %s is not present. panic", f))
 	}
-
-	config := &AppConfig{}
-
-	file, err := os.Open(path)
+	res, err := strconv.Atoi(val)
 	if err != nil {
-		return nil, ErrFileIssue
+		panic(fmt.Errorf("key value can not be parsed, key: %s", f))
 	}
-
-	defer file.Close()
-
-	decoder := yaml.NewDecoder(file)
-
-	if err := decoder.Decode(&config); err != nil {
-		return nil, fmt.Errorf("%s. Error: %s", ErrParseIssue.Error(), err.Error())
-	}
-
-	return config, nil
+	return res
 }
