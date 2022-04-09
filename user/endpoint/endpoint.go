@@ -2,6 +2,7 @@ package endpoint
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/go-kit/kit/endpoint"
 	kitzap "github.com/go-kit/kit/log/zap"
@@ -27,6 +28,16 @@ func MakeRegistrationEndpoint(us service.UserService, lg *zap.Logger) endpoint.E
 		if err != nil {
 			response = RegistrationResponse{Errors: err.Error()}
 		}
+		return
+	}
+	e = middleware.LoggingMiddleware(logger)(e)
+	return e
+}
+
+func MakeEcho(us service.UserService, lg *zap.Logger) endpoint.Endpoint {
+	logger := kitzap.NewZapSugarLogger(lg, zap.InfoLevel)
+	e := func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		fmt.Println("hi")
 		return
 	}
 	e = middleware.LoggingMiddleware(logger)(e)

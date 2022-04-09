@@ -15,7 +15,8 @@ import (
 )
 
 type handlers struct {
-	regHandler *transp.Server
+	regHandler    *transp.Server
+	verifyHandler *transp.Server
 }
 
 type errMsg struct {
@@ -42,14 +43,24 @@ func MakeHandlers(us service.UserService) handlers {
 		options...,
 	)
 
+	hands.verifyHandler = transp.NewServer(
+		endpoint.MakeEcho(us, lg),
+		decodeRequest,
+		encodeResponse,
+		options...,
+	)
+
 	return hands
 }
 
 func RegisterRoutes(us service.UserService, r *mux.Router) {
 	hands := MakeHandlers(us)
-	r.Path("/send/registration").Methods("POST").Handler(hands.regHandler)
-	//r.Path("/send/authentication").Methods("POST").Handler(hands.authHandler)
+	r.Path("/api/register").Methods("POST").Handler(hands.regHandler)
+	r.Path("/api/verify").Methods("POST").Handler(hands.verifyHandler)
+}
 
+func decodeRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	return nil, nil
 }
 
 func decodeRegisterRequest(_ context.Context, r *http.Request) (interface{}, error) {
