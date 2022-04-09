@@ -42,11 +42,10 @@ type service struct {
 	linkRepo VerificationRepository
 }
 
-func NewService(repo UserRepository, email mail.Sender, vRepo VerificationRepository) UserService {
+func NewService(repo UserRepository, vRepo VerificationRepository) UserService {
 	return service{
 		repo:     repo,
 		lg:       zap.S().With("service", "user"),
-		email:    email,
 		linkRepo: vRepo,
 	}
 }
