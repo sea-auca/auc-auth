@@ -28,13 +28,13 @@ func main() {
 
 	//SERVICES INITIALISATION STEP
 
-	rep, err := db.ConnectDatabase(shutdown)
-	_ = db.ConnectPGXDatabase(ctx)
+	_, err := db.ConnectDatabase(shutdown)
+	pdb := db.ConnectPGXDatabase(ctx)
 	serv, router := NewServer()
 	if err != nil {
 		logger.Fatal("Could not connect to the database", zap.Error(err))
 	}
-	userRepo, verLinkRepo := repo.NewUserRepository(rep), repo.NewVerificationRepository(rep)
+	userRepo, verLinkRepo := repo.NewPgxUserRepo(pdb), repo.NewPgxVerificationLinkRepo(pdb)
 	userService := service.NewService(userRepo, verLinkRepo)
 
 	server.RegisterRoutes(userService, router)
