@@ -133,6 +133,9 @@ func (s service) ValidateUser(ctx context.Context, validationID uuid.UUID) error
 		s.lg.Error("failed to verify user, link is abscent", zap.Error(err))
 		return err
 	}
+	if vl.WasUtilised || time.Now().After(vl.ExpiresAt) {
+		return errors.New("link is invalid")
+	}
 	user, err := s.repo.GetByID(ctx, vl.UserID)
 	if err != nil {
 		return err
